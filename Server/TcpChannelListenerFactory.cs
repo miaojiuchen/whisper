@@ -17,9 +17,9 @@ namespace Whisper.Server
 
         public IChannelListener Create(ListenOptions listenOptions, ServerOptions serverOptions)
         {
-            Func<Socket, IChannel> channelFactory = socket =>
+            Func<Socket, ValueTask<IChannel>> channelFactory = socket =>
             {
-                return new TcpChannel(serverOptions.ChannelOptions);
+                return new ValueTask<IChannel>(new TcpChannel(serverOptions.ChannelOptions));
             };
 
             return new TcpChannelListener(listenOptions, channelFactory);

@@ -10,7 +10,5 @@ namespace Whisper.Server
         {
             _options = options;
         }
-
-        
     }
 }

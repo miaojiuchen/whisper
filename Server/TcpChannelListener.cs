@@ -1,5 +1,6 @@
 using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Whisper.Common;
 
@@ -8,33 +9,42 @@ namespace Whisper.Server
     public class TcpChannelListener : IChannelListener
     {
         public bool IsRunning { get; private set; }
-        public event NewClientAcceptedHandler OnNewClientAccepted;
-
+        public event NewChannelAcceptedHandler OnNewChannelAccepted;
+        private Socket _listenSocket;
         private readonly ListenOptions _options;
-        private readonly Func<Socket, IChannel> _channelFactory;
-        private readonly Func<Socket, ValueTask<IChannel>> _channelFactoryAsync;
+        private readonly Func<Socket, ValueTask<IChannel>> _channelFactory;
 
         public TcpChannelListener(ListenOptions options, Func<Socket, ValueTask<IChannel>> channelFactory)
-        {
-            _options = options;
-            _channelFactoryAsync = channelFactory;
-        }
-
-        public TcpChannelListener(ListenOptions options, Func<Socket, IChannel> channelFactory)
         {
             _options = options;
             _channelFactory = channelFactory;
         }
 
-        public Task StartAsync()
+        public async Task StartAsync()
         {
-            var endpoint = _options
-            var sockert = new Socket();
+            var endpoint = _options.GetListenEndPoint();
+            var listenSocket = _listenSocket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            listenSocket.Bind(endpoint);
+            listenSocket.Listen(_options.Backlog);
+
+            IsRunning = true;
+
+            while (IsRunning)
+            {
+                var clientSocket = await listenSocket.AcceptAsync();
+
+                var channel = await _channelFactory(clientSocket);
+
+                OnNewChannelAccepted?.Invoke(this, channel);
+            }
         }
 
         public Task StopAsync()
         {
-            throw new System.NotImplementedException();
+            IsRunning = false;
+            _listenSocket.Close();
+            return Task.CompletedTask;
         }
     }
 }
