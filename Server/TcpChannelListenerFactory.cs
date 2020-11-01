@@ -15,11 +15,11 @@ namespace Whisper.Server
             _logger = logger;
         }
 
-        public IChannelListener Create(ListenOptions listenOptions, ServerOptions serverOptions)
+        public IChannelListener Create<TPackage>(ListenOptions listenOptions, ServerOptions serverOptions)
         {
-            Func<Socket, ValueTask<IChannel>> channelFactory = socket =>
+            ChannelFactory channelFactory = socket =>
             {
-                return new ValueTask<IChannel>(new TcpChannel(serverOptions.ChannelOptions));
+                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(null));
             };
 
             return new TcpChannelListener(listenOptions, channelFactory);

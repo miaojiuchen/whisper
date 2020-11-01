@@ -15,14 +15,14 @@ namespace Whisper.Server
     {
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IOptions<ServerOptions> _serverOptions;
+        private readonly ServerOptions _serverOptions;
         private readonly ISessionFactory _sessionFactory;
         private readonly IChannelListenerFactory _channelListenerFactory;
         private readonly List<IChannelListener> _channelListeners = new List<IChannelListener>();
 
         public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions> serverOptions)
         {
-            _serverOptions = serverOptions;
+            _serverOptions = serverOptions.Value;
             _loggerFactory = serviceProvider.GetService<ILoggerFactory>();
             _logger = _loggerFactory.CreateLogger(nameof(WhisperHostedService));
             _sessionFactory = serviceProvider.GetRequiredService<ISessionFactory>();
@@ -31,7 +31,7 @@ namespace Whisper.Server
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var serverOptions = _serverOptions.Value;
+            var serverOptions = _serverOptions;
 
             if (serverOptions.Listeners?.Any() == true)
             {

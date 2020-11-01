@@ -2,6 +2,6 @@ namespace Whisper.Common
 {
     public interface IChannelListenerFactory
     {
-        IChannelListener Create(ListenOptions listenOptions, ServerOptions serverOptions);
+        IChannelListener Create<TPackage>(ListenOptions listenOptions, ServerOptions serverOptions);
     }
 }

@@ -1,18 +1,35 @@
+using System;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Whisper.Hosting;
+using Whisper.Server;
 
 namespace Whisper
 {
+    class Package
+    {
+        string Name;
+
+        // string
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            WhisperHost
+            Host
                 .CreateDefaultBuilder(args)
-                .ConfigureLogging((HostBuilderContext, loggingBuilder) =>
+                .UseWhisper<Package>(options =>
                 {
-                    loggingBuilder.AddConsole();
+                    Console.WriteLine(options);
+                    // options.OnPackageReceived += (package, session) =>
+                    // {
+                    //     session.SendAsync($"{package.Name} Hello world");
+                    // };
+
+                    // options.OnPackageReceived += (package, session) =>
+                    // {
+
+                    // };
                 })
                 .Build()
                 .Run();

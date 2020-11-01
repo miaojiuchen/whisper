@@ -12,12 +12,12 @@ namespace Whisper.Server
         public event NewChannelAcceptedHandler OnNewChannelAccepted;
         private Socket _listenSocket;
         private readonly ListenOptions _options;
-        private readonly Func<Socket, ValueTask<IChannel>> _channelFactory;
+        private readonly ChannelFactory _channelFactory;
 
-        public TcpChannelListener(ListenOptions options, Func<Socket, ValueTask<IChannel>> channelFactory)
+        public TcpChannelListener(ListenOptions options, ChannelFactory channelFactory)
         {
             _options = options;
-            _channelFactory = channelFactory;
+            _channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
         }
 
         public async Task StartAsync()
@@ -33,9 +33,7 @@ namespace Whisper.Server
             while (IsRunning)
             {
                 var clientSocket = await listenSocket.AcceptAsync();
-
                 var channel = await _channelFactory(clientSocket);
-
                 OnNewChannelAccepted?.Invoke(this, channel);
             }
         }
