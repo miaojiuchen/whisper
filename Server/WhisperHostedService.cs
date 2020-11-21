@@ -15,12 +15,12 @@ namespace Whisper.Server
     {
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ServerOptions _serverOptions;
+        private readonly ServerOptions<TPackage> _serverOptions;
         private readonly ISessionFactory _sessionFactory;
         private readonly IChannelListenerFactory _channelListenerFactory;
         private readonly List<IChannelListener<TPackage>> _channelListeners = new List<IChannelListener<TPackage>>();
 
-        public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions> serverOptions)
+        public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions<TPackage>> serverOptions)
         {
             _serverOptions = serverOptions.Value;
             _loggerFactory = serviceProvider.GetService<ILoggerFactory>();

@@ -16,7 +16,7 @@ namespace Whisper.Server
             return hostBuilder.ConfigureServices((context, services) =>
             {
                 services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("Whisper"));
-                services.ConfigureOptions<ServerOptionsSetup>();
+                services.ConfigureOptions<ServerOptionsSetup<TPackage>>();
                 services.AddSingleton<IChannelListenerFactory, TcpChannelListenerFactory>();
             })
             .ConfigurePackageDefaults<FixedLengthHeaderPackage<DefaultFormatHeader>, FixedLengthHeaderPackageFilter<DefaultFormatHeader>>();
