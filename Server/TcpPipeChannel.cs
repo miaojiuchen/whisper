@@ -4,26 +4,11 @@ using Whisper.Common;
 
 namespace Whisper.Server
 {
-    // public class TcpPipeChannel<TPackage> : PipeChannel<TPackage>
-    // {
-    //     public TcpPipeChannel(ChannelOptions options)
-    //     {
-            
-    //     }
+    public class TcpPipeChannel<TPackage> : PipeChannel<TPackage>
+    {
+        public TcpPipeChannel(ChannelOptions options, PipePackageFilter<TPackage> pipePackageFilter) : base(options, pipePackageFilter)
+        {
 
-    //     public override ValueTask CloseAsync(CloseReason closeReason)
-    //     {
-    //         throw new NotImplementedException();
-    //     }
-
-    //     public override ValueTask SendAsync(ReadOnlyMemory<byte> data)
-    //     {
-    //         throw new NotImplementedException();
-    //     }
-
-    //     public override ValueTask SendAsync<TPackage>(TPackage package)
-    //     {
-    //         throw new NotImplementedException();
-    //     }
-    // }
+        }
+    }
 }

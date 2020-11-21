@@ -10,8 +10,9 @@ namespace Whisper.Server
             var session = new Session(channel)
             {
                 StartTime = DateTimeOffset.Now,
-                LocalEndPoint = channel
+                // LocalEndPoint = channel.
             };
+
             return session;
         }
     }

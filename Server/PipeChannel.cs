@@ -7,7 +7,7 @@ using Whisper.Common;
 
 namespace Whisper.Server
 {
-    public abstract partial class PipeChannel<TPackage> : Channel<TPackage>
+    public abstract class PipeChannel<TPackage> : Channel<TPackage>
     {
         public Pipe Outgoing { get; }
 
@@ -15,10 +15,13 @@ namespace Whisper.Server
 
         private ILogger _logger;
 
-        protected PipeChannel(ChannelOptions options)
+        private PipePackageFilter<TPackage> _packageFilter;
+
+        protected PipeChannel(ChannelOptions options, PipePackageFilter<TPackage> packageFilter) : base(options)
         {
             Outgoing = new Pipe();
             Incoming = new Pipe();
+            _packageFilter = packageFilter;
             _logger = options.ApplicationServices.GetRequiredService<ILogger<PipeChannel<TPackage>>>();
         }
 
@@ -32,14 +35,19 @@ namespace Whisper.Server
             return null;
         }
 
-        public override ValueTask SendAsync(ReadOnlyMemory<byte> data)
+        public override ValueTask SendAsync(TPackage package)
         {
             throw new NotImplementedException();
         }
 
-        public override ValueTask SendAsync(TPackage package)
+        private async Task ProcessReads()
         {
-            throw new NotImplementedException();
+
+        }
+
+        private async Task ProcessWrites()
+        {
+
         }
     }
 }

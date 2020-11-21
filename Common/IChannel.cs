@@ -3,10 +3,15 @@ using System.Threading.Tasks;
 
 namespace Whisper.Common
 {
-    public interface IChannel<TPackage>
+    public interface IChannel<TPackage> : IChannel
+    {
+        ValueTask SendAsync(TPackage package);
+    }
+
+    public interface IChannel
     {
         Task StartAsync();
         Task StopAsync(CloseReason closeReason);
-        ValueTask SendAsync(TPackage package);
+        ValueTask SendAsync(ReadOnlyMemory<byte> data);
     }
 }

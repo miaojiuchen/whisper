@@ -18,13 +18,14 @@ namespace Whisper
         {
             Host
                 .CreateDefaultBuilder(args)
-                .UseWhisper<Package>(options =>
+                .UseWhisper(options =>
                 {
-                    Console.WriteLine(options);
-                    // options.OnPackageReceived += (package, session) =>
-                    // {
-                    //     session.SendAsync($"{package.Name} Hello world");
-                    // };
+                    options.PipePackageFilterType = typeof(FixedLengthHeaderPackageFilter<DefaultFormatHeader>);
+                    
+                    options.OnPackageReceived += (package, session) =>
+                    {
+                        session.SendAsync($"{package.Name} Hello world");
+                    };
 
                     // options.OnPackageReceived += (package, session) =>
                     // {

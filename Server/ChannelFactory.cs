@@ -5,5 +5,8 @@ using Whisper.Common;
 
 namespace Whisper.Server
 {
+    /// <summary>
+    /// Simple delegate factory
+    /// </summary>
     public delegate ValueTask<IChannel> ChannelFactory(Socket socket);
 }

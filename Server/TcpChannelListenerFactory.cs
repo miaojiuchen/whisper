@@ -10,16 +10,19 @@ namespace Whisper.Server
     {
         private ILogger<TcpChannelListenerFactory> _logger;
 
-        public TcpChannelListenerFactory(ILogger<TcpChannelListenerFactory> logger)
+        private PipePackageFilterFactory _pipePackageFilterFactory;
+
+        public TcpChannelListenerFactory(ILogger<TcpChannelListenerFactory> logger, PipePackageFilterFactory pipePackageFilterFactory)
         {
             _logger = logger;
+            _pipePackageFilterFactory = pipePackageFilterFactory;
         }
 
         public IChannelListener Create<TPackage>(ListenOptions listenOptions, ServerOptions serverOptions)
         {
             ChannelFactory channelFactory = socket =>
             {
-                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(null));
+                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(serverOptions, _pipePackageFilterFactory.Create<TPackage>()));
             };
 
             return new TcpChannelListener(listenOptions, channelFactory);

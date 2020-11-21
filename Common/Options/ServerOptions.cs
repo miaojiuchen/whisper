@@ -7,7 +7,9 @@ namespace Whisper.Common
     public class ServerOptions : ChannelOptions
     {
         public List<ListenOptions> Listeners { get; set; }
-        
+
         public Encoding DefaultEncoding { get; set; }
+
+        public Type PipePackageFilterType { get; set; }
     }
 }

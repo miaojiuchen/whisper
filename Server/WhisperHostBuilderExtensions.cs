@@ -1,36 +1,42 @@
 using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Whisper.Common;
 
 namespace Whisper.Server
 {
     public static class WhisperHostBuilderExtensions
     {
-        public static IHostBuilder UseWhisper<TPackage>(this IHostBuilder hostBuilder)
+        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder)
         {
             return hostBuilder.ConfigureServices((context, services) =>
             {
                 services.Configure<ServerOptions>(context.Configuration.GetSection("Whisper"));
                 services.ConfigureOptions<ServerOptionsSetup>();
-                services.TryAddSingleton<IChannelListenerFactory, TcpChannelListenerFactory>();
-                // services.TryAddSingleton<ISessionFactory, DefaultSessionFactory>();
+                services.AddSingleton<IChannelListenerFactory, TcpChannelListenerFactory>();
+
                 services.AddHostedService<WhisperHostedService>();
+            })
+            .ConfigurePackageDefaults();
+        }
+
+        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<ServerOptions> options)
+        {
+            return hostBuilder.UseWhisper().ConfigureWhisper(options);
+        }
+
+        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<HostBuilderContext, ServerOptions> configureOptions)
+        {
+            return hostBuilder.UseWhisper().ConfigureWhisper(configureOptions);
+        }
+
+        public static IHostBuilder ConfigurePackageDefaults(this IHostBuilder hostBuilder)
+        {
+            return hostBuilder.ConfigureServices((context, services) =>
+            {
+                services.AddSingleton
             });
-        }
-
-        public static IHostBuilder UseWhisper<TPackage>(this IHostBuilder hostBuilder, Action<ServerOptions> options)
-        {
-            return hostBuilder.UseWhisper<TPackage>().ConfigureWhisper(options);
-        }
-
-        public static IHostBuilder UseWhisper<TPackage>(this IHostBuilder hostBuilder, Action<HostBuilderContext, ServerOptions> configureOptions)
-        {
-            return hostBuilder.UseWhisper<TPackage>().ConfigureWhisper(configureOptions);
         }
 
         public static IHostBuilder ConfigureWhisper(this IHostBuilder hostBuilder, Action<ServerOptions> options)
