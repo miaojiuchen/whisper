@@ -1,17 +1,10 @@
 using System;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using whisper;
 using Whisper.Server;
+using Microsoft.Extensions.Hosting;
 
 namespace Whisper
 {
-    class Package
-    {
-        string Name;
-
-        // string
-    }
-
     class Program
     {
         static void Main(string[] args)
@@ -20,17 +13,24 @@ namespace Whisper
                 .CreateDefaultBuilder(args)
                 .UseWhisper(options =>
                 {
-                    options.PipePackageFilterType = typeof(FixedLengthHeaderPackageFilter<DefaultFormatHeader>);
-                    
                     options.OnPackageReceived += (package, session) =>
                     {
-                        session.SendAsync($"{package.Name} Hello world");
+                        Console.WriteLine(package.Header.ContentLength);
+                        Console.WriteLine(package.Header.PackageType);
+                        Console.WriteLine(package.Body.Length);
                     };
+                })
+                .Build()
+                .Run();
 
-                    // options.OnPackageReceived += (package, session) =>
-                    // {
-
-                    // };
+            Host
+                .CreateDefaultBuilder(args)
+                .UseWhisper<MyPackage, MyPackageFilter>(options =>
+                {
+                    options.OnPackageReceived += (package, session) =>
+                    {
+                        Console.WriteLine(package.GetType() == typeof(MyPackage));
+                    };
                 })
                 .Build()
                 .Run();

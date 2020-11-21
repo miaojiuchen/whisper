@@ -18,14 +18,14 @@ namespace Whisper.Server
             _pipePackageFilterFactory = pipePackageFilterFactory;
         }
 
-        public IChannelListener Create<TPackage>(ListenOptions listenOptions, ServerOptions serverOptions)
+        public IChannelListener<TPackage> Create<TPackage>(ListenOptions listenOptions, ServerOptions<TPackage> serverOptions)
         {
             ChannelFactory channelFactory = socket =>
             {
                 return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(serverOptions, _pipePackageFilterFactory.Create<TPackage>()));
             };
 
-            return new TcpChannelListener(listenOptions, channelFactory);
+            return new TcpChannelListener<TPackage>(listenOptions, channelFactory);
         }
     }
 }

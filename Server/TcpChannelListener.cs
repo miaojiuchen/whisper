@@ -6,13 +6,13 @@ using Whisper.Common;
 
 namespace Whisper.Server
 {
-    public class TcpChannelListener : IChannelListener
+    public class TcpChannelListener<TPackage> : IChannelListener<TPackage>
     {
         public bool IsRunning { get; private set; }
-        public event NewChannelAcceptedHandler OnNewChannelAccepted;
         private Socket _listenSocket;
         private readonly ListenOptions _options;
         private readonly ChannelFactory _channelFactory;
+        public event NewChannelAcceptedHandler<TPackage> OnNewChannelAccepted;
 
         public TcpChannelListener(ListenOptions options, ChannelFactory channelFactory)
         {

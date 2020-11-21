@@ -11,20 +11,20 @@ namespace Whisper.Server
     using System.Linq;
     using System.Collections.Generic;
 
-    internal class WhisperHostedService : IHostedService
+    internal class WhisperHostedService<TPackage, TPackageFilter> : IHostedService
     {
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ServerOptions _serverOptions;
         private readonly ISessionFactory _sessionFactory;
         private readonly IChannelListenerFactory _channelListenerFactory;
-        private readonly List<IChannelListener> _channelListeners = new List<IChannelListener>();
+        private readonly List<IChannelListener<TPackage>> _channelListeners = new List<IChannelListener<TPackage>>();
 
         public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions> serverOptions)
         {
             _serverOptions = serverOptions.Value;
             _loggerFactory = serviceProvider.GetService<ILoggerFactory>();
-            _logger = _loggerFactory.CreateLogger(nameof(WhisperHostedService));
+            _logger = _loggerFactory.CreateLogger(nameof(WhisperHostedService<TPackage, TPackageFilter>));
             _sessionFactory = serviceProvider.GetRequiredService<ISessionFactory>();
             _channelListenerFactory = serviceProvider.GetRequiredService<IChannelListenerFactory>();
         }
@@ -42,7 +42,7 @@ namespace Whisper.Server
                         return;
                     }
 
-                    var listener = _channelListenerFactory.Create(listenerOption, serverOptions);
+                    var listener = _channelListenerFactory.Create<TPackage>(listenerOption, serverOptions);
                     listener.OnNewChannelAccepted += this.OnNewChannelAccepted;
                     _channelListeners.Add(listener);
                 }
@@ -56,10 +56,10 @@ namespace Whisper.Server
             await Task.WhenAll(_channelListeners.Where(x => x.IsRunning).Select(x => x.StopAsync()));
         }
 
-        private void OnNewChannelAccepted(IChannelListener listener, IChannel channel)
+        private void OnNewChannelAccepted(IChannelListener<TPackage> listener, IChannel channel)
         {
             var session = _sessionFactory.Create(channel);
-        
+
 
         }
     }

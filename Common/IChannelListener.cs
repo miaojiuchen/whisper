@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Whisper.Common
 {
-    public delegate void NewChannelAcceptedHandler(IChannelListener listener, IChannel channel);
+    public delegate void NewChannelAcceptedHandler<TPackage>(IChannelListener<TPackage> listener, IChannel channel);
 
-    public interface IChannelListener
+    public interface IChannelListener<TPackage>
     {
         bool IsRunning { get; }
 
@@ -13,6 +13,6 @@ namespace Whisper.Common
 
         Task StopAsync();
 
-        event NewChannelAcceptedHandler OnNewChannelAccepted;
+        event NewChannelAcceptedHandler<TPackage> OnNewChannelAccepted;
     }
 }
