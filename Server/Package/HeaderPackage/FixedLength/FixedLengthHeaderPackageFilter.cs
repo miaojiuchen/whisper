@@ -5,7 +5,7 @@ namespace Whisper.Server
     public class FixedLengthHeaderPackageFilter<THeader> : HeaderPackageFilter<FixedLengthHeaderPackage<THeader>, THeader>
         where THeader : class, IPackageHeader, new()
     {
-        private int _headerSize;
+        private readonly int _headerSize;
 
         public FixedLengthHeaderPackageFilter(int headerSize) : base(new FixedLengthHeaderPackageDecoder<THeader>(headerSize))
         {

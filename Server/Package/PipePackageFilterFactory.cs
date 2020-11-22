@@ -1,11 +1,22 @@
+using Microsoft.Extensions.Options;
+using whisper.Common.Options;
+using Whisper.Common;
+
 namespace Whisper.Server
 {
-    public class PipePackageFilterFactory
+    public class PipePackageFilterFactory<TPackage, TPackageFilter>
+        where TPackageFilter : PipePackageFilter<TPackage>, new()
     {
-        public PipePackageFilter<TPackage> Create<TPackage>()
+        public PackageOptions _packageOptions;
+
+        public PipePackageFilterFactory(IOptions<ServerOptions<TPackage>> options)
         {
-            // return new PipePackageFilter<TPackage>();
-            return null;
+
+        }
+
+        public PipePackageFilter<TPackage> Create()
+        {
+            return new TPackageFilter();
         }
     }
 }

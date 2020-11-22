@@ -17,7 +17,7 @@ namespace Whisper.Server
         private readonly ILoggerFactory _loggerFactory;
         private readonly ServerOptions<TPackage> _serverOptions;
         private readonly ISessionFactory _sessionFactory;
-        private readonly IChannelListenerFactory _channelListenerFactory;
+        private readonly IChannelListenerFactory<TPackage> _channelListenerFactory;
         private readonly List<IChannelListener<TPackage>> _channelListeners = new List<IChannelListener<TPackage>>();
 
         public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions<TPackage>> serverOptions)
@@ -26,7 +26,7 @@ namespace Whisper.Server
             _loggerFactory = serviceProvider.GetService<ILoggerFactory>();
             _logger = _loggerFactory.CreateLogger(nameof(WhisperHostedService<TPackage, TPackageFilter>));
             _sessionFactory = serviceProvider.GetRequiredService<ISessionFactory>();
-            _channelListenerFactory = serviceProvider.GetRequiredService<IChannelListenerFactory>();
+            _channelListenerFactory = serviceProvider.GetRequiredService<IChannelListenerFactory<TPackage>>();
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ namespace Whisper.Server
                         return;
                     }
 
-                    var listener = _channelListenerFactory.Create<TPackage>(listenerOption, serverOptions);
+                    var listener = _channelListenerFactory.Create(listenerOption, serverOptions);
                     listener.OnNewChannelAccepted += this.OnNewChannelAccepted;
                     _channelListeners.Add(listener);
                 }

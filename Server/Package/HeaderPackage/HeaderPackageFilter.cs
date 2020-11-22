@@ -5,7 +5,7 @@ namespace Whisper.Server
 {
     public abstract class HeaderPackageFilter<TPackage, THeader> : PipePackageFilter<TPackage>
         where TPackage : class, IHeaderPackage<THeader>, new()
-        where THeader : IPackageHeader
+        where THeader : class, IPackageHeader
     {
         private THeader _header;
 
@@ -32,7 +32,9 @@ namespace Whisper.Server
                 return false;
             }
 
-            package = DecodePackage(reader.Sequence.Slice(0, totalSize));
+            package = base.DecodePackage(reader.Sequence.Slice(0, totalSize));
+
+            _header = null; // reset
 
             return true;
         }

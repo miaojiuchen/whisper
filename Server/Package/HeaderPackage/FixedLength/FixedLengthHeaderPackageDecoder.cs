@@ -6,7 +6,7 @@ namespace Whisper.Server
     public class FixedLengthHeaderPackageDecoder<THeader> : HeaderPackageDecoder<FixedLengthHeaderPackage<THeader>, THeader>
         where THeader : IPackageHeader, new()
     {
-        private int _headerSize;
+        private readonly int _headerSize;
 
         public FixedLengthHeaderPackageDecoder(int headerSize)
         {

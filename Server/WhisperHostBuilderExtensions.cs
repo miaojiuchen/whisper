@@ -1,8 +1,12 @@
 using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Whisper.Common;
+using DefaultPackage = Whisper.Server.FixedLengthHeaderPackage<Whisper.Server.DefaultFormatFixedHeader>;
+using DefaultPackageFilter = Whisper.Server.FixedLengthHeaderPackageFilter<Whisper.Server.DefaultFormatFixedHeader>;
 
 namespace Whisper.Server
 {
@@ -12,27 +16,22 @@ namespace Whisper.Server
     public static class WhisperHostBuilderExtensions
     {
         public static IHostBuilder UseWhisper<TPackage, TPackageFilter>(this IHostBuilder hostBuilder)
+            where TPackageFilter : PipePackageFilter<TPackage>
         {
             return hostBuilder.ConfigureServices((context, services) =>
             {
                 services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("Whisper"));
                 services.ConfigureOptions<ServerOptionsSetup<TPackage>>();
-                services.AddSingleton<IChannelListenerFactory, TcpChannelListenerFactory>();
+                services.AddSingleton<IChannelListenerFactory<TPackage>, TcpChannelListenerFactory<TPackage, TPackageFilter>>();
+                services.AddHostedService<WhisperHostedService<TPackage, TPackageFilter>>();
             })
-            .ConfigurePackageDefaults<FixedLengthHeaderPackage<DefaultFormatHeader>, FixedLengthHeaderPackageFilter<DefaultFormatHeader>>();
+            .ConfigureDefaultFixedHeaderPackage();
         }
 
         public static IHostBuilder UseWhisper<TPackage, TPackageFilter>(this IHostBuilder hostBuilder, Action<ServerOptions<TPackage>> options)
+            where TPackageFilter : PipePackageFilter<TPackage>, new()
         {
-            return hostBuilder.UseWhisper().ConfigureWhisper(options);
-        }
-
-        public static IHostBuilder ConfigurePackageDefaults<TPackage, TPackageFilter>(this IHostBuilder hostBuilder)
-        {
-            return hostBuilder.ConfigureServices((context, services) =>
-            {
-                services.AddHostedService<WhisperHostedService<TPackage, TPackageFilter>>();
-            });
+            return hostBuilder.UseWhisper<TPackage, TPackageFilter>().ConfigureWhisper(options);
         }
 
         public static IHostBuilder ConfigureWhisper<TPackage>(this IHostBuilder hostBuilder, Action<ServerOptions<TPackage>> options)
@@ -62,17 +61,26 @@ namespace Whisper.Server
     {
         public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder)
         {
-            return hostBuilder.UseWhisper<FixedLengthHeaderPackage<DefaultFormatHeader>, FixedLengthHeaderPackageFilter<DefaultFormatHeader>>();
+            return hostBuilder.UseWhisper<DefaultPackage, DefaultPackageFilter>();
         }
 
-        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<ServerOptions<FixedLengthHeaderPackage<DefaultFormatHeader>>> options)
+        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<ServerOptions<DefaultPackage>> options)
         {
             return hostBuilder.UseWhisper().ConfigureWhisper(options);
         }
 
-        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<HostBuilderContext, ServerOptions<FixedLengthHeaderPackage<DefaultFormatHeader>>> configureOptions)
+        public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<HostBuilderContext, ServerOptions<DefaultPackage>> configureOptions)
         {
             return hostBuilder.UseWhisper().ConfigureWhisper(configureOptions);
+        }
+
+        public static IHostBuilder ConfigureDefaultFixedHeaderPackage(this IHostBuilder hostBuilder)
+        {
+            return hostBuilder.ConfigureServices((context, services) =>
+            {
+                var headerSize = context.Configuration.GetValue<int>("whisper:package:headerSize", DefaultFormatFixedHeader.Size);
+                services.AddTransient<PipePackageFilter<DefaultPackage>>(serviceProvider => new DefaultPackageFilter(headerSize));
+            });
         }
     }
 }

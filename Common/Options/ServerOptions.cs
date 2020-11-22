@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using whisper.Common.Options;
 
 namespace Whisper.Common
 {
@@ -8,10 +9,10 @@ namespace Whisper.Common
 
     public class ServerOptions<TPackage> : ChannelOptions
     {
+        public PackageOptions Package { get; set; }
         public List<ListenOptions> Listeners { get; set; }
-
-        public Encoding DefaultEncoding { get; set; }
-
+#pragma warning disable CS0067
         public event OnPackageReceived<TPackage> OnPackageReceived;
+#pragma warning restore CS0067
     }
 }

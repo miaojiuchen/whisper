@@ -6,23 +6,24 @@ using Whisper.Common;
 
 namespace Whisper.Server
 {
-    public class TcpChannelListenerFactory : IChannelListenerFactory
+    public class TcpChannelListenerFactory<TPackage, TPackageFilter> : IChannelListenerFactory<TPackage>
+        where TPackageFilter : PipePackageFilter<TPackage>
     {
-        private ILogger<TcpChannelListenerFactory> _logger;
+        private ILogger<TcpChannelListenerFactory<TPackage, TPackageFilter>> _logger;
 
-        private PipePackageFilterFactory _pipePackageFilterFactory;
+        private PipePackageFilter<TPackage> _pipePackageFilter;
 
-        public TcpChannelListenerFactory(ILogger<TcpChannelListenerFactory> logger, PipePackageFilterFactory pipePackageFilterFactory)
+        public TcpChannelListenerFactory(ILogger<TcpChannelListenerFactory<TPackage, TPackageFilter>> logger, PipePackageFilter<TPackage> pipePackageFilter)
         {
             _logger = logger;
-            _pipePackageFilterFactory = pipePackageFilterFactory;
+            _pipePackageFilter = pipePackageFilter;
         }
 
-        public IChannelListener<TPackage> Create<TPackage>(ListenOptions listenOptions, ServerOptions<TPackage> serverOptions)
+        public IChannelListener<TPackage> Create(ListenOptions listenOptions, ServerOptions<TPackage> serverOptions)
         {
             ChannelFactory channelFactory = socket =>
             {
-                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(serverOptions, _pipePackageFilterFactory.Create<TPackage>()));
+                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(serverOptions, _pipePackageFilter));
             };
 
             return new TcpChannelListener<TPackage>(listenOptions, channelFactory);

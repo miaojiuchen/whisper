@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace Whisper.Server
 {
-    public class DefaultFormatHeader : IPackageHeader
+    public class DefaultFormatFixedHeader : IPackageHeader
     {
         public const int Size = 8;
         public int PackageType { get; set; }
