@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Whisper.Common;
+using System.IO;
+using System.Buffers;
 
 namespace Whisper.Server
 {
@@ -17,7 +19,7 @@ namespace Whisper.Server
 
         private PipePackageFilter<TPackage> _packageFilter;
 
-        protected PipeChannel(ChannelOptions options, PipePackageFilter<TPackage> packageFilter) : base(options)
+        protected PipeChannel(ChannelOptions<TPackage> options, PipePackageFilter<TPackage> packageFilter) : base(options)
         {
             Outgoing = new Pipe();
             Incoming = new Pipe();
@@ -40,14 +42,89 @@ namespace Whisper.Server
             throw new NotImplementedException();
         }
 
+        #region Read
+
         private async Task ProcessReads()
         {
+            var pipe = Incoming;
 
+            Task writePipe = WritePipe(pipe.Writer);
+            Task consumePipe = ConsumePipe(pipe.Reader);
+
+            await Task.WhenAll(writePipe, consumePipe);
         }
+
+        private async Task WritePipe(PipeWriter writer)
+        {
+            while (true)
+            {
+                try
+                {
+                    var memory = writer.GetMemory();
+
+                    var bytesRead = await FillPipeWriterMemory(memory);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+
+                    writer.Advance(bytesRead);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error occurred when writing pipe");
+                    break;
+                }
+
+                var result = await writer.FlushAsync();
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+        }
+
+        private async Task ConsumePipe(PipeReader reader)
+        {
+            while (true)
+            {
+                ReadResult result;
+                try
+                {
+                    result = await reader.ReadAsync();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error occurred when reading pipe");
+                    break;
+                }
+
+                var buffer = result.Buffer;
+
+            }
+        }
+
+        private void ParseBuffer(ReadOnlySequence<byte> buffer)
+        {
+            var sequenceReader = new SequenceReader<byte>(buffer);
+
+            while (_packageFilter.Filter(ref sequenceReader, out TPackage package))
+            {
+
+            }
+        }
+
+        protected abstract ValueTask<int> FillPipeWriterMemory(Memory<byte> memory);
+
+        #endregion
+
+        #region Write
 
         private async Task ProcessWrites()
         {
 
         }
+
+        #endregion
     }
 }

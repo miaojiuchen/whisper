@@ -11,10 +11,10 @@ namespace Whisper.Server
         public bool IsRunning { get; private set; }
         private Socket _listenSocket;
         private readonly ListenOptions _options;
-        private readonly ChannelFactory _channelFactory;
+        private readonly SimpleChannelFactory<TPackage> _channelFactory;
         public event NewChannelAcceptedHandler<TPackage> OnNewChannelAccepted;
 
-        public TcpChannelListener(ListenOptions options, ChannelFactory channelFactory)
+        public TcpChannelListener(ListenOptions options, SimpleChannelFactory<TPackage> channelFactory)
         {
             _options = options;
             _channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));

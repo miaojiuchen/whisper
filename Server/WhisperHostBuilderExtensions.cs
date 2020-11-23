@@ -20,7 +20,9 @@ namespace Whisper.Server
         {
             return hostBuilder.ConfigureServices((context, services) =>
             {
-                services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("Whisper"));
+                // This injected IOptions<ServerOptions<TPackage>> will be singleton across whole application lifetime.
+                // See https://github.com/dotnet/runtime/blob/bb492cb7d9b0a3f2026b34f4ed7250c28cf94fab/src/libraries/Microsoft.Extensions.Options/src/OptionsServiceCollectionExtensions.cs#L29
+                services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("whisper"));
                 services.ConfigureOptions<ServerOptionsSetup<TPackage>>();
                 services.AddSingleton<IChannelListenerFactory<TPackage>, TcpChannelListenerFactory<TPackage, TPackageFilter>>();
                 services.AddHostedService<WhisperHostedService<TPackage, TPackageFilter>>();
@@ -74,6 +76,11 @@ namespace Whisper.Server
             return hostBuilder.UseWhisper().ConfigureWhisper(configureOptions);
         }
 
+        /// <summary>
+        /// Use default formatted fixed header to parsing package
+        /// </summary>
+        /// <param name="hostBuilder"></param>
+        /// <returns></returns>
         public static IHostBuilder ConfigureDefaultFixedHeaderPackage(this IHostBuilder hostBuilder)
         {
             return hostBuilder.ConfigureServices((context, services) =>

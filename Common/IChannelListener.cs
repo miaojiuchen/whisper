@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Whisper.Common
 {
-    public delegate void NewChannelAcceptedHandler<TPackage>(IChannelListener<TPackage> listener, IChannel channel);
+    public delegate void NewChannelAcceptedHandler<TPackage>(IChannelListener<TPackage> listener, IChannel<TPackage> channel);
 
     public interface IChannelListener<TPackage>
     {

@@ -56,11 +56,19 @@ namespace Whisper.Server
             await Task.WhenAll(_channelListeners.Where(x => x.IsRunning).Select(x => x.StopAsync()));
         }
 
-        private void OnNewChannelAccepted(IChannelListener<TPackage> listener, IChannel channel)
+        private void OnNewChannelAccepted(IChannelListener<TPackage> listener, IChannel<TPackage> channel)
         {
             var session = _sessionFactory.Create(channel);
 
+            Task _ = this.HandleSession(session, channel);
+        }
 
+        private async Task HandleSession(ISession session, IChannel<TPackage> channel)
+        {
+            await foreach (var package in channel.AsAsyncEnumerable())
+            {
+                _serverOptions.TriggerPackageReceive(package, session);
+            }
         }
     }
 }

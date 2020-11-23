@@ -7,10 +7,6 @@ namespace Whisper.Server
     {
         protected IPackageDecoder<TPackage> Decoder { get; set; }
 
-        public PipePackageFilter()
-        {
-        }
-
         public PipePackageFilter(IPackageDecoder<TPackage> decoder)
         {
             Decoder = decoder;

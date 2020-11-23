@@ -21,9 +21,9 @@ namespace Whisper.Server
 
         public IChannelListener<TPackage> Create(ListenOptions listenOptions, ServerOptions<TPackage> serverOptions)
         {
-            ChannelFactory channelFactory = socket =>
+            SimpleChannelFactory<TPackage> channelFactory = socket =>
             {
-                return new ValueTask<IChannel>(new TcpPipeChannel<TPackage>(serverOptions, _pipePackageFilter));
+                return new ValueTask<IChannel<TPackage>>(new TcpPipeChannel<TPackage>(socket, serverOptions, _pipePackageFilter));
             };
 
             return new TcpChannelListener<TPackage>(listenOptions, channelFactory);
