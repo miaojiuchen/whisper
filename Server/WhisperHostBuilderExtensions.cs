@@ -1,9 +1,7 @@
 using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Whisper.Common;
 using DefaultPackage = Whisper.Server.FixedLengthHeaderPackage<Whisper.Server.DefaultFormatFixedHeader>;
 using DefaultPackageFilter = Whisper.Server.FixedLengthHeaderPackageFilter<Whisper.Server.DefaultFormatFixedHeader>;
@@ -25,9 +23,9 @@ namespace Whisper.Server
                 services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("whisper"));
                 services.ConfigureOptions<ServerOptionsSetup<TPackage>>();
                 services.AddSingleton<IChannelListenerFactory<TPackage>, TcpChannelListenerFactory<TPackage, TPackageFilter>>();
+                services.AddSingleton<ISessionFactory, SessionFactory>();
                 services.AddHostedService<WhisperHostedService<TPackage, TPackageFilter>>();
-            })
-            .ConfigureDefaultFixedHeaderPackage();
+            });
         }
 
         public static IHostBuilder UseWhisper<TPackage, TPackageFilter>(this IHostBuilder hostBuilder, Action<ServerOptions<TPackage>> options)
@@ -63,7 +61,7 @@ namespace Whisper.Server
     {
         public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder)
         {
-            return hostBuilder.UseWhisper<DefaultPackage, DefaultPackageFilter>();
+            return hostBuilder.UseWhisper<DefaultPackage, DefaultPackageFilter>().ConfigureDefaultFixedHeaderPackage();
         }
 
         public static IHostBuilder UseWhisper(this IHostBuilder hostBuilder, Action<ServerOptions<DefaultPackage>> options)

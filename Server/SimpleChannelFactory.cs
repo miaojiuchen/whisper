@@ -8,5 +8,5 @@ namespace Whisper.Server
     /// <summary>
     /// Simple delegate factory
     /// </summary>
-    public delegate ValueTask<IChannel<TPackage>> SimpleChannelFactory<TPackage>(Socket socket);
+    public delegate ValueTask<Channel<TPackage>> SimpleChannelFactory<TPackage>(Socket socket);
 }

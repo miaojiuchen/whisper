@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Whisper.Common
 {
+    public delegate void OnPackageFiltered<TPackage>(TPackage package);
+
     public abstract class Channel<TPackage> : IChannel<TPackage>
     {
         protected ChannelOptions<TPackage> Options { get; }
@@ -22,7 +24,6 @@ namespace Whisper.Common
         {
             throw new NotImplementedException();
         }
-        
-        public abstract IAsyncEnumerable<TPackage> AsAsyncEnumerable();
+        public abstract event OnPackageFiltered<TPackage> OnPackageFiltered;
     }
 }

@@ -15,11 +15,6 @@ namespace Whisper.Server
             _socket = socket;
         }
 
-        public override IAsyncEnumerable<TPackage> AsAsyncEnumerable()
-        {
-            throw new NotImplementedException();
-        }
-
         protected override async ValueTask<int> FillPipeWriterMemory(Memory<byte> memory)
         {
             return await _socket.ReceiveAsync(memory, SocketFlags.None);

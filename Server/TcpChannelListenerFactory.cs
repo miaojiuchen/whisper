@@ -23,7 +23,7 @@ namespace Whisper.Server
         {
             SimpleChannelFactory<TPackage> channelFactory = socket =>
             {
-                return new ValueTask<IChannel<TPackage>>(new TcpPipeChannel<TPackage>(socket, serverOptions, _pipePackageFilter));
+                return new ValueTask<Channel<TPackage>>(new TcpPipeChannel<TPackage>(socket, serverOptions, _pipePackageFilter));
             };
 
             return new TcpChannelListener<TPackage>(listenOptions, channelFactory);

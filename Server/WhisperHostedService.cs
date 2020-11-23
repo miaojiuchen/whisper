@@ -31,6 +31,8 @@ namespace Whisper.Server
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation($"WhisperHostedService<{nameof(TPackage)}, {nameof(TPackageFilter)}> started");
+
             var serverOptions = _serverOptions;
 
             if (serverOptions.Listeners?.Any() == true)
@@ -45,6 +47,7 @@ namespace Whisper.Server
                     var listener = _channelListenerFactory.Create(listenerOption, serverOptions);
                     listener.OnNewChannelAccepted += this.OnNewChannelAccepted;
                     _channelListeners.Add(listener);
+                    _logger.LogInformation($"Listener {listenerOption.IP}:{listenerOption.Port} Added");
                 }
             }
 
@@ -56,19 +59,19 @@ namespace Whisper.Server
             await Task.WhenAll(_channelListeners.Where(x => x.IsRunning).Select(x => x.StopAsync()));
         }
 
-        private void OnNewChannelAccepted(IChannelListener<TPackage> listener, IChannel<TPackage> channel)
+        private void OnNewChannelAccepted(IChannelListener<TPackage> listener, Channel<TPackage> channel)
         {
             var session = _sessionFactory.Create(channel);
 
-            Task _ = this.HandleSession(session, channel);
+            this.HandleSession(session, channel);
         }
 
-        private async Task HandleSession(ISession session, IChannel<TPackage> channel)
+        private void HandleSession(ISession session, Channel<TPackage> channel)
         {
-            await foreach (var package in channel.AsAsyncEnumerable())
+            channel.OnPackageFiltered += package =>
             {
                 _serverOptions.TriggerPackageReceive(package, session);
-            }
+            };
         }
     }
 }

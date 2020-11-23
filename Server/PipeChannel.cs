@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Whisper.Common;
 using System.IO;
 using System.Buffers;
+using System.Collections.Generic;
 
 namespace Whisper.Server
 {
@@ -15,7 +16,7 @@ namespace Whisper.Server
 
         public Pipe Incoming { get; }
 
-        private ILogger _logger;
+        private ILogger<PipeChannel<TPackage>> _logger;
 
         private PipePackageFilter<TPackage> _packageFilter;
 
@@ -41,6 +42,8 @@ namespace Whisper.Server
         {
             throw new NotImplementedException();
         }
+
+        public override event OnPackageFiltered<TPackage> OnPackageFiltered;
 
         #region Read
 
@@ -101,6 +104,7 @@ namespace Whisper.Server
 
                 var buffer = result.Buffer;
 
+                ParseBuffer(buffer);
             }
         }
 
@@ -110,7 +114,7 @@ namespace Whisper.Server
 
             while (_packageFilter.Filter(ref sequenceReader, out TPackage package))
             {
-
+                OnPackageFiltered?.Invoke(package);
             }
         }
 
