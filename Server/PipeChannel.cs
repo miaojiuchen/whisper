@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Whisper.Common;
-using System.IO;
 using System.Buffers;
-using System.Collections.Generic;
 
 namespace Whisper.Server
 {
@@ -47,14 +45,12 @@ namespace Whisper.Server
 
         #region Read
 
-        private async Task ProcessReads()
+        private Task ProcessReads()
         {
             var pipe = Incoming;
-
             Task writePipe = WritePipe(pipe.Writer);
             Task consumePipe = ConsumePipe(pipe.Reader);
-
-            await Task.WhenAll(writePipe, consumePipe);
+            return Task.WhenAll(writePipe, consumePipe);
         }
 
         private async Task WritePipe(PipeWriter writer)
@@ -66,6 +62,8 @@ namespace Whisper.Server
                     var memory = writer.GetMemory();
 
                     var bytesRead = await FillPipeWriterMemory(memory);
+                    var bytes = new byte[memory.Length];
+                    memory.Span.CopyTo(bytes);
                     if (bytesRead == 0)
                     {
                         break;
@@ -85,6 +83,8 @@ namespace Whisper.Server
                     break;
                 }
             }
+
+            writer.Complete();
         }
 
         private async Task ConsumePipe(PipeReader reader)
@@ -104,18 +104,22 @@ namespace Whisper.Server
 
                 var buffer = result.Buffer;
 
-                ParseBuffer(buffer);
+                var consumed = ParseBuffer(buffer);
+
+                reader.AdvanceTo(consumed, buffer.End);
             }
         }
 
-        private void ParseBuffer(ReadOnlySequence<byte> buffer)
+        private SequencePosition ParseBuffer(in ReadOnlySequence<byte> buffer)
         {
-            var sequenceReader = new SequenceReader<byte>(buffer);
+            var reader = new SequenceReader<byte>(buffer);
 
-            while (_packageFilter.Filter(ref sequenceReader, out TPackage package))
+            while (_packageFilter.Filter(reader, out TPackage package))
             {
                 OnPackageFiltered?.Invoke(package);
             }
+
+            return reader.Position;
         }
 
         protected abstract ValueTask<int> FillPipeWriterMemory(Memory<byte> memory);

@@ -17,22 +17,24 @@ namespace Whisper.Server
         private readonly ILoggerFactory _loggerFactory;
         private readonly ServerOptions<TPackage> _serverOptions;
         private readonly ISessionFactory _sessionFactory;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IChannelListenerFactory<TPackage> _channelListenerFactory;
         private readonly List<IChannelListener<TPackage>> _channelListeners = new List<IChannelListener<TPackage>>();
 
-        public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions<TPackage>> serverOptions)
+        public WhisperHostedService(IServiceProvider serviceProvider, IOptions<ServerOptions<TPackage>> serverOptions, IHostApplicationLifetime hostApplicationLifeTime)
         {
             _serverOptions = serverOptions.Value;
             _loggerFactory = serviceProvider.GetService<ILoggerFactory>();
             _logger = _loggerFactory.CreateLogger(nameof(WhisperHostedService<TPackage, TPackageFilter>));
             _sessionFactory = serviceProvider.GetRequiredService<ISessionFactory>();
+            _hostApplicationLifetime = hostApplicationLifeTime;
             _channelListenerFactory = serviceProvider.GetRequiredService<IChannelListenerFactory<TPackage>>();
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"WhisperHostedService<{nameof(TPackage)}, {nameof(TPackageFilter)}> started");
-
+            
             var serverOptions = _serverOptions;
 
             if (serverOptions.Listeners?.Any() == true)
@@ -41,7 +43,7 @@ namespace Whisper.Server
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        return;
+                        return Task.CompletedTask;
                     }
 
                     var listener = _channelListenerFactory.Create(listenerOption, serverOptions);
@@ -51,19 +53,24 @@ namespace Whisper.Server
                 }
             }
 
-            await Task.WhenAll(_channelListeners.Select(x => x.StartAsync()));
+            // Use ToList to ensure all listener is ready on Ports
+            var tasks = _channelListeners.Select(x => x.StartAsync()).ToList();
+            
+            _serverOptions.TriggerServerReady();
+
+            return Task.WhenAll(tasks);
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(_channelListeners.Where(x => x.IsRunning).Select(x => x.StopAsync()));
+            return Task.WhenAll(_channelListeners.Where(x => x.IsRunning).Select(x => x.StopAsync()));
         }
 
         private void OnNewChannelAccepted(IChannelListener<TPackage> listener, Channel<TPackage> channel)
         {
             var session = _sessionFactory.Create(channel);
-
             this.HandleSession(session, channel);
+            channel.StartAsync();
         }
 
         private void HandleSession(ISession session, Channel<TPackage> channel)

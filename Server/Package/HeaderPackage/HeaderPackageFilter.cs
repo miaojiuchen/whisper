@@ -13,13 +13,13 @@ namespace Whisper.Server
         {
         }
 
-        public override bool Filter(ref SequenceReader<byte> reader, out TPackage package)
+        public override bool Filter(in SequenceReader<byte> reader, out TPackage package)
         {
             package = null;
 
             if (_header == null)
             {
-                if (!TryReadHeader(ref reader, out _header))
+                if (!TryReadHeader(reader, out _header))
                 {
                     return false;
                 }
@@ -39,6 +39,6 @@ namespace Whisper.Server
             return true;
         }
 
-        protected abstract bool TryReadHeader(ref SequenceReader<byte> reader, out THeader header);
+        protected abstract bool TryReadHeader(in SequenceReader<byte> reader, out THeader header);
     }
 }

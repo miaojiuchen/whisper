@@ -12,7 +12,7 @@ namespace Whisper.Server
             _headerSize = headerSize;
         }
 
-        protected override bool TryReadHeader(ref SequenceReader<byte> reader, out THeader header)
+        protected override bool TryReadHeader(in SequenceReader<byte> reader, out THeader header)
         {
             header = null;
 

@@ -7,6 +7,7 @@ using System.Buffers.Binary;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Whisper
 {
@@ -14,38 +15,37 @@ namespace Whisper
     {
         static void Main(string[] args)
         {
-            var _ = Task.Run(() =>
+            Host
+            .CreateDefaultBuilder(args)
+            .UseWhisper(options =>
             {
-                Host
-                .CreateDefaultBuilder(args)
-                .UseWhisper(options =>
+                options.OnPackageReceived += (package, session) =>
                 {
-                    options.OnPackageReceived += (package, session) =>
-                    {
-                        Console.WriteLine(package.Header.ContentLength);
-                        Console.WriteLine(package.Header.PackageType);
-                        Console.WriteLine(package.Body.Length);
-                    };
-                })
-                .Build()
-                .Run();
-            });
+                    Console.WriteLine(package.Header.ContentLength);
+                    Console.WriteLine(package.Header.PackageType);
+                    Console.WriteLine(package.Body.Length);
+                };
+                options.OnServerReady += () =>
+                {
+                    using TcpClient client = new TcpClient("localhost", 5000);
 
-            Task.Delay(3000).GetAwaiter().GetResult();
+                    var message = Encoding.UTF8.GetBytes("Hello World");
+                    var contentLength = message.Length;
 
-            using TcpClient client = new TcpClient("localhost", 5000);
+                    byte[] data = new byte[DefaultFormatFixedHeader.Size + contentLength];
+                    var span = new Span<byte>(data);
+                    BinaryPrimitives.WriteInt32BigEndian(span.Slice(4), contentLength);
+                    message.CopyTo(span.Slice(8));
 
-            var message = Encoding.UTF8.GetBytes("Hello World");
-            var contentLength = message.Length;
-
-            byte[] data = new byte[DefaultFormatFixedHeader.Size + contentLength];
-            var span = new Span<byte>(data);
-            BinaryPrimitives.WriteInt32BigEndian(span.Slice(4), contentLength);
-            message.CopyTo(span.Slice(8));
-
-            NetworkStream stream = client.GetStream();
-            using StreamWriter sw = new StreamWriter(stream);
-            sw.Write(data);
+                    NetworkStream stream = client.GetStream();
+                    using StreamWriter sw = new StreamWriter(stream);
+                    sw.Write(data);
+                    sw.Flush();
+                    Task.Delay(-1).Wait();
+                };
+            })
+            .Build()
+            .Run();
         }
     }
 }

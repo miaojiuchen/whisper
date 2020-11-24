@@ -17,7 +17,7 @@ namespace Whisper.Server
             }
 
             PackageType = BinaryPrimitives.ReadInt32BigEndian(bytes.Slice(0, 4));
-            ContentLength = BinaryPrimitives.ReadInt32BigEndian(bytes.Slice(5, 4));
+            ContentLength = BinaryPrimitives.ReadInt32BigEndian(bytes.Slice(4, 4));
         }
     }
 }
