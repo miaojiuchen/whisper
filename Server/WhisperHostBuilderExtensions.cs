@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Whisper.Common;
-using DefaultPackage = Whisper.Server.FixedLengthHeaderPackage<Whisper.Server.DefaultFormatFixedHeader>;
+using DefaultPackage = Whisper.Server.DefaultHeaderPackage<Whisper.Server.DefaultFormatFixedHeader>;
 using DefaultPackageFilter = Whisper.Server.FixedLengthHeaderPackageFilter<Whisper.Server.DefaultFormatFixedHeader>;
 
 namespace Whisper.Server
@@ -21,7 +21,10 @@ namespace Whisper.Server
                 // This injected IOptions<ServerOptions<TPackage>> will be singleton across whole application lifetime.
                 // See https://github.com/dotnet/runtime/blob/bb492cb7d9b0a3f2026b34f4ed7250c28cf94fab/src/libraries/Microsoft.Extensions.Options/src/OptionsServiceCollectionExtensions.cs#L29
                 services.Configure<ServerOptions<TPackage>>(context.Configuration.GetSection("whisper"));
+
+                // This used to inject ServiceProvider into options
                 services.ConfigureOptions<ServerOptionsSetup<TPackage>>();
+
                 services.AddSingleton<IChannelListenerFactory<TPackage>, TcpChannelListenerFactory<TPackage, TPackageFilter>>();
                 services.AddSingleton<ISessionFactory, SessionFactory>();
                 services.AddHostedService<WhisperHostedService<TPackage, TPackageFilter>>();

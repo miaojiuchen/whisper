@@ -23,11 +23,12 @@ namespace Whisper
                 {
                     Console.WriteLine(package.Header.ContentLength);
                     Console.WriteLine(package.Header.PackageType);
-                    Console.WriteLine(package.Body.Length);
+                    Console.WriteLine(Encoding.UTF8.GetString(package.Body));
                 };
                 options.OnServerReady += () =>
                 {
-                    using TcpClient client = new TcpClient("localhost", 5000);
+                    System.Timers.Timer timer = new System.Timers.Timer();
+                    timer.Interval = 1000;
 
                     var message = Encoding.UTF8.GetBytes("Hello World");
                     var contentLength = message.Length;
@@ -37,11 +38,16 @@ namespace Whisper
                     BinaryPrimitives.WriteInt32BigEndian(span.Slice(4), contentLength);
                     message.CopyTo(span.Slice(8));
 
-                    NetworkStream stream = client.GetStream();
-                    using StreamWriter sw = new StreamWriter(stream);
-                    sw.Write(data);
-                    sw.Flush();
-                    Task.Delay(-1).Wait();
+                    timer.Elapsed += (sender, e) =>
+                    {
+                        using TcpClient client = new TcpClient("localhost", 5000);
+                        NetworkStream stream = client.GetStream();
+                        stream.Write(data, 0, data.Length);
+                        stream.Flush();
+                        Task.Delay(1000).Wait();
+                    };
+
+                    timer.Start();
                 };
             })
             .Build()

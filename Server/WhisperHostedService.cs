@@ -53,7 +53,7 @@ namespace Whisper.Server
                 }
             }
 
-            // Use ToList to ensure all listener is ready on Ports
+            // Use ToList to ensure all listener is ready on ports
             var tasks = _channelListeners.Select(x => x.StartAsync()).ToList();
             
             _serverOptions.TriggerServerReady();
@@ -68,6 +68,7 @@ namespace Whisper.Server
 
         private void OnNewChannelAccepted(IChannelListener<TPackage> listener, Channel<TPackage> channel)
         {
+            _logger.LogInformation($"Channel Accepted");
             var session = _sessionFactory.Create(channel);
             this.HandleSession(session, channel);
             channel.StartAsync();

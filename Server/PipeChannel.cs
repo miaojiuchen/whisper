@@ -62,8 +62,6 @@ namespace Whisper.Server
                     var memory = writer.GetMemory();
 
                     var bytesRead = await FillPipeWriterMemory(memory);
-                    var bytes = new byte[memory.Length];
-                    memory.Span.CopyTo(bytes);
                     if (bytesRead == 0)
                     {
                         break;

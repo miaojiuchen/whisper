@@ -9,7 +9,7 @@ namespace Whisper.Server
     {
         private THeader _header;
 
-        public HeaderPackageFilter(HeaderPackageDecoder<TPackage, THeader> decoder) : base(decoder)
+        public HeaderPackageFilter(IPackageDecoder<TPackage> decoder) : base(decoder)
         {
         }
 
@@ -19,20 +19,24 @@ namespace Whisper.Server
 
             if (_header == null)
             {
-                if (!TryReadHeader(reader, out _header))
+                if (!TryReadHeader(in reader, out _header))
                 {
                     return false;
                 }
             }
 
-            var totalSize = _header.ContentLength;
+            var contentLength = _header.ContentLength;
 
-            if (reader.Length < totalSize)
+            if (reader.Length < contentLength)
             {
                 return false;
             }
 
-            package = base.DecodePackage(reader.Sequence.Slice(0, totalSize));
+            package = base.DecodePackage(reader.Sequence.Slice(0, contentLength));
+
+            package.Header = _header;
+
+            reader.Advance(contentLength);
 
             _header = null; // reset
 
