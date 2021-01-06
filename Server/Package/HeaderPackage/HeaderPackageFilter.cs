@@ -13,13 +13,13 @@ namespace Whisper.Server
         {
         }
 
-        public override bool Filter(in SequenceReader<byte> reader, out TPackage package)
+        public override bool Filter(ref SequenceReader<byte> reader, out TPackage package)
         {
             package = null;
 
             if (_header == null)
             {
-                if (!TryReadHeader(in reader, out _header))
+                if (!TryReadHeader(ref reader, out _header))
                 {
                     return false;
                 }
@@ -27,12 +27,12 @@ namespace Whisper.Server
 
             var contentLength = _header.ContentLength;
 
-            if (reader.Length < contentLength)
+            if (reader.Remaining < contentLength)
             {
                 return false;
             }
 
-            package = base.DecodePackage(reader.Sequence.Slice(0, contentLength));
+            package = base.DecodePackage(reader.Sequence.Slice(reader.Position, contentLength));
 
             package.Header = _header;
 
@@ -43,6 +43,6 @@ namespace Whisper.Server
             return true;
         }
 
-        protected abstract bool TryReadHeader(in SequenceReader<byte> reader, out THeader header);
+        protected abstract bool TryReadHeader(ref SequenceReader<byte> reader, out THeader header);
     }
 }

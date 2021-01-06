@@ -13,7 +13,7 @@ namespace Whisper.Server
             _headerSize = headerSize;
         }
 
-        protected override bool TryReadHeader(in SequenceReader<byte> reader, out THeader header)
+        protected override bool TryReadHeader(ref SequenceReader<byte> reader, out THeader header)
         {
             header = null;
 
@@ -22,19 +22,18 @@ namespace Whisper.Server
                 return false;
             }
 
-            var seq = reader.Sequence.Slice(0, _headerSize);
-
             header = new THeader();
 
-            if (seq.FirstSpan.Length < _headerSize)
+
+            if (reader.UnreadSequence.FirstSpan.Length < _headerSize)
             {
                 Span<byte> temp = stackalloc byte[_headerSize];
-                seq.CopyTo(temp);
+                reader.Sequence.CopyTo(temp);
                 header.LoadFromBytes(temp);
             }
             else
             {
-                header.LoadFromBytes(seq.FirstSpan);
+                header.LoadFromBytes(reader.UnreadSequence.FirstSpan.Slice(0, _headerSize));
             }
 
             reader.Advance(_headerSize);

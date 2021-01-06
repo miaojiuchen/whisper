@@ -112,7 +112,7 @@ namespace Whisper.Server
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            while (_packageFilter.Filter(reader, out TPackage package))
+            while (_packageFilter.Filter(ref reader, out TPackage package))
             {
                 OnPackageFiltered?.Invoke(package);
             }

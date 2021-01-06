@@ -12,7 +12,7 @@ namespace Whisper.Server
             Decoder = decoder;
         }
 
-        public abstract bool Filter(in SequenceReader<byte> reader, out TPackage package);
+        public abstract bool Filter(ref SequenceReader<byte> reader, out TPackage package);
 
         protected virtual TPackage DecodePackage(ReadOnlySequence<byte> bytes)
         {

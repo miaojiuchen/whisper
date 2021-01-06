@@ -21,9 +21,7 @@ namespace Whisper
             {
                 options.OnPackageReceived += (package, session) =>
                 {
-                    Console.WriteLine(package.Header.ContentLength);
-                    Console.WriteLine(package.Header.PackageType);
-                    Console.WriteLine(Encoding.UTF8.GetString(package.Body));
+                    Console.WriteLine(Encoding.UTF8.GetString(package.Body.FirstSpan));
                 };
                 options.OnServerReady += () =>
                 {
